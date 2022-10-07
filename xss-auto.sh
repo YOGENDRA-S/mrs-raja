@@ -1,11 +1,11 @@
 #!/bin/bash
 
 while getopts ":d:" input;do
-    case "$input" in 
+        case "$input" in 
             d) domain=${OPTARG}
                     ;;
             esac 
-    done        
+        done        
 if [ -z "$domain" ]
         then
                 echo "please give a domain like \"-d domain.com\""
