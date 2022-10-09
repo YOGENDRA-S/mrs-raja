@@ -35,7 +35,7 @@ subzy -targets all.txt -hide_fails | anew SubdomainTakeover.txt
 echo "finding parameter and Next scan for xss"
 for i in $(cat all.txt);do ./tools/ParamSpider/paramspider.py -d $i ;done 
 cat output/*.txt | sort -u | anew paramspideroutput.txt
-
+rm -rf output
 echo "starting Cms Detection"
 whatweb -i alive.txt | anew whatweb_op.txt 
 
