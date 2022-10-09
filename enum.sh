@@ -39,8 +39,8 @@ cat output/*.txt | sort -u | anew paramspideroutput.txt
 echo "starting Cms Detection"
 whatweb -i alive.txt | anew whatweb_op.txt 
 
-cd /root/tools/dirsearch
-./dirsearch.py -u $domain | anew ../../dirseaechfuzz.txt
+
+dirsearch -u $domain | anew ../../dirseaechfuzz.txt
 
 cd
 
