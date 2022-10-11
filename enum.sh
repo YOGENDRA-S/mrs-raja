@@ -58,13 +58,15 @@ cd
 echo "GF patterns scan" 
 mkdir gfpatternsscan
 
-cat alive.txt | waybackurls | sort -u >> waybackdata
-cat waybackdata | gf redirect | anew gfpatternsscan/redirectGF.txt 
-cat waybackdata | gf xss | anew gfpatternsscan/xssGF.txt
-cat waybackdata | gf ssti | anew gfpatternsscan/sstiGF.txt
-cat waybackdata | gf sqli | anew gfpatternsscan/sqliGF.txt
-cat waybackdata | gf rce |  anew gfpatternsscan/rceGF.txt
-cat waybackdata | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt
+cat alive.txt | waybackurls | sort -u >> waybackdata.txt
+cat paramspideroutput.txt >> waybackdata.txt
+
+cat waybackdata.txt | gf redirect | anew gfpatternsscan/redirectGF.txt 
+cat waybackdata.txt | gf xss | anew gfpatternsscan/xssGF.txt
+cat waybackdata.txt | gf ssti | anew gfpatternsscan/sstiGF.txt
+cat waybackdata.txt | gf sqli | anew gfpatternsscan/sqliGF.txt
+cat waybackdata.txt | gf rce |  anew gfpatternsscan/rceGF.txt
+cat waybackdata.txt | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt
 
 
 
