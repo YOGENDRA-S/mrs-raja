@@ -14,18 +14,15 @@ fi
 
 
 
-host $domain | anew hostinfo.txt 
-dig $domain any | anew diginfo.txt
+host $domain | tee -a hostinfo.txt 
+dig $domain any | tee -a diginfo.txt
 subfinder -d $domain -o op.txt
+assetfinder --subs-only $domain | tee -a op.txt
 
-subfinder -d $domain -all -silent | httpx -silent -threads 300 | anew -q FILE.txt && sed 's/$/\/?__proto__[testparam]=exploit\//' FILE.txt | page-fetch -j 'window.testparam == "exploit"? "[VULNERABLE]" : "[NOT VULNERABLE]"' | sed "s/(//g" | sed "s/)//g" | sed "s/JS //g" | grep "VULNERABLE" | tee -a vPrototype-Pollution.txt
- 
-assetfinder --subs-only $domain | anew op.txt
+amass enum -passive -d $domain | tee -a op.txt
+amass enum -active -d $domain | tee -a amass_ips.txt
+crobat -s $domain | tee -a amass_ips.txt
 
-amass enum -passive -d $domain | anew op.txt
-amass enum -active -d $domain | anew amass_ips.txt
-crobat -s $domain | anew amass_ips.txt
-cat amass_ips.txt | awk '{print $1}' | anew op.txt
 
 cat op.txt | sort -u | anew all.txt 
 cat all.txt | httprobe | anew alive2.txt
