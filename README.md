@@ -9,11 +9,24 @@ installation command
 git clone https://github.com/YOGENDRA-S/mrs-raja.git 
 ```
 ```
-cd bug-bounty-tools 
+cd mrs-raja
 ```
 ```
-chmod +x install.sh 
+chmod +x enum.sh
 ```
 ```
-./install.sh 
+./enum.sh -d targat.com
 ```
+# -d = domain
+ 
+#all in scan in one 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
