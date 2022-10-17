@@ -1,13 +1,12 @@
 # mrs-raja
 auto
-# bug-bounty-tools
 
 This is the all in one tool
 
 installation command 
 
 ```
-git clone https://github.com/YOGENDRA-S/bug-bounty-tools 
+git clone https://github.com/YOGENDRA-S/mrs-raja.git 
 ```
 ```
 cd bug-bounty-tools 
