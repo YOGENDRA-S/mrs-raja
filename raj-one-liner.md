@@ -10,7 +10,10 @@ subfinder -d target.com -silent | httpx -silent -o urls.txt
 ```bash
 gospider -d 0 -s "https://site.com" -c 5 -t 100 -d 5 --blacklist jpg,jpeg,gif,css,tif,tiff,png,ttf,woff,woff2,ico,pdf,svg,txt | grep -Eo '(http|https)://[^/"]+' | anew
 ```
-
+## Search Sqli
+```
+cat domain | subfinder -d | httpx -nc -t 300 -p 80,443,8080,8443,8090,9090 -silent | katana >> sqli;  sqlmap -m sqli --batch --random-agent --level 4
+```
 ## find .git/HEAD
 > @ofjaaah
 ```bash
